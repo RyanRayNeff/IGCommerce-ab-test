@@ -1,0 +1,329 @@
+<?php
+/**
+ * Implements hook_permission().
+ */
+function igcommerce_homepage_ab_test_permission() {
+  return array(
+    'access igcommerce_homepage_ab_test' => array(
+      'title' => t('Administer IGCommerece Homepage AB Test'),
+      'description' => t('Generates HTML for the Maxymiser homepage AB test'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_install().
+ *
+ * Add default permission for access settings to administrator
+ *
+ * This is intentionally restricted to Admin only. The content generated
+ * by this module will be added to the page dynamically be Maxymiser for AB
+ * testing.
+ * 
+ */
+function igcommerce_homepage_ab_test_install() {
+  user_role_change_permissions(3,
+    array(
+      'access igcommerce_homepage_ab_test' => TRUE,
+    )
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function igcommerce_homepage_ab_test_menu() {
+  $items['ab-test'] = array(
+    'title' => 'Homepage alternate for AB test',
+    'page callback' => 'igcommerce_homepage_ab_test_admin',
+    'access arguments' => array('access igcommerce_homepage_ab_test'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function igcommerce_homepage_ab_test_theme() {   
+  $module_path = drupal_get_path('module', 'igcommerce_homepage_ab_test');
+  $base = array(
+    'path' => $module_path . "/templates",
+  );
+
+  return array(
+    'homepage_ab_test' => $base + array(
+      'template' => 'homepage-ab-test',
+      'variables' => array('content' => NULL),
+      // 'variables' => array('content' => NULL, 'product_type' => NULL),
+    )
+  );
+}
+
+/**
+ * Constructs a simple page, and a link to download the html & css.
+ *
+ * All the page content is stored in arrays to make updating this page easy.
+ * The html and css files will be sent to Maximiser for dynamic insertion
+ *
+ */
+function igcommerce_homepage_ab_test_admin() {
+
+  // TODO: If this makes it into production, add comments to each of the picture
+  // functions noting that they are used here.
+  // May also need to expand image creation in the DAM to support hero-banner.
+
+  drupal_add_css(drupal_get_path('module', 'igcommerce_homepage_ab_test') . '/css/ab-test.css');
+  // If you need to update the css, you can drop the scss into theme ig_neato  
+  // and use the gulp workflow there to recompile. See ab-test.scss comments for
+  // details. You can use the funciton below during testing.
+  // drupal_add_css(drupal_get_path('theme', 'ig_neato') . '/css/ab-test.css');
+  
+  $content = array();
+
+  // Set a variable for a path to images in the dam.
+  // The image path is used by the functions that generate the <picture> tags.
+  $dam_base = '//dam-assets.fluke.com/s3fs-public/';
+  // The hero banner is built differently from the other banners because the 
+  // aspect ratio is atypical. We're pulling directly from the dam.
+  $hero_url_chunk = $dam_base . 'styles/original__size/public/';
+
+  // The Hero banner is the large square banner in the upper left of the page.
+  $content['hero-banner'] = array(
+    'desktop' => $hero_url_chunk . 'main-brand-image585x542.jpg',
+    'desktop_2x' => $hero_url_chunk . 'main-brand-image1170x1084.jpg',
+    'tablet' => $hero_url_chunk . 'main-brand-image957x542.jpg',
+    'tablet_2x' => $hero_url_chunk . 'main-brand-image1914x957.jpg',
+    'alt' => 'Man holding a thermal imager',
+    'img-title' => 'Welcome to Fluke',
+    'title' => t('Welcome to Fluke'),
+    'subtitle' => t('Helping you keep your world <span class="line-break"></span>up and running'),
+    'link_url' => '/product/thermal-imaging/infrared-cameras/professional-series/fluke-ti480-pro',
+  );
+  // The hero banner uses atypical aspect ratio's, so we are adding all images 
+  // seperately, rather than use an exsisting <picture> generateing function.
+  // THe same images are used for mobile & desktop, tablet is different.
+  $hero_picture = '<picture>';
+  $hero_picture .= "<source media='(min-width: 1033px)' srcset='" . $content["hero-banner"]["desktop"] . ", " . $content["hero-banner"]["desktop_2x"] . " 2x' >";
+  $hero_picture .= "<source media='(min-width: 526px)' srcset='" . $content["hero-banner"]["tablet"] . ", " . $content["hero-banner"]["tablet_2x"] . " 2x' >";
+  $hero_picture .= "<img src='" . $content["hero-banner"]["desktop"] . "' srcset='" . $content["hero-banner"]["desktop_2x"] . " 2x' alt='" . $content["hero-banner"]["alt"] . "' title='" . $content["hero-banner"]["title"] . "' onerror='applyDefaultImg(this);'>";
+  $hero_picture .= '</picture>';
+  $content['hero-banner']['formatted_picture'] = $hero_picture;
+  
+  // The sub-banners are the two banners to the right of the hero banner at the 
+  // top of the page.
+  $content['sub-banner-one'] = array(
+    'img_url' => $dam_base . '6011267a-T3-Team-Up-BONUS-GIFT-promo-banner-1500x1000.jpg',
+    'alt' => 'Fluke promotional merchandixe',
+    'img-title' => 'Free bonus gift',
+    'title' => t('Free bonus gift'),
+    'subtitle' => t('with purchase over $250'),
+    'link_url' => 'https://content.fluke.com/promotions/promo-multi/T3-2018-team-up/usen-bonus-gift.html?_ga=2.978934.696403685.1540248626-637798031.1540248626',
+  );
+  $content['sub-banner-one']['formatted_picture'] = igcommerce_utility_format_image_blog_featured(($content['sub-banner-one']['img_url']), ($content['sub-banner-one']['alt']), ($content['sub-banner-one']['title']));
+  
+  $content['sub-banner-two'] = array(
+    'img_url' => $dam_base . '6011563a-en-70th-anniversary-homepage-banner-1500x1000.jpg',
+    'alt' => 'Fluke products from the 50s',
+    'img-title' => '70 years of innovation',
+    'title' => t('70 years of innovation'),
+    'subtitle' => t('Fluke celebrates 70 years of innovation by asking “who inspires you”?'),
+    'link_url' => 'https://content.fluke.com/70th-anniversary/en/en-us.html?_ga=2.235482950.696403685.1540248626-637798031.1540248626',
+  );
+  $content['sub-banner-two']['formatted_picture'] = igcommerce_utility_format_image_blog_featured(($content['sub-banner-two']['img_url']), ($content['sub-banner-two']['alt']), ($content['sub-banner-two']['title']));
+  
+  // Featured product images that span the width of the page. The 5th product is
+  // hidden on mobile when the products display 2 per column.
+  $content['featured-products'] = array(
+    array(
+      'img_url' => $dam_base . '3561-exp-1st-1500x1000.jpg',
+      'alt' => 'Fluke 3561 FC Vibration Sensor',
+      'img-title' => 'Fluke 3561 FC Vibration Sensor',
+      'title' => t('Fluke 3561 FC Vibration Sensor'),
+      'link_url' => '/product/condition-monitoring/vibration/3561-vibration-sensor',
+    ),
+    array(
+      'img_url' => $dam_base . 'F_729_01a_h_1500x1000.jpg',
+      'alt' => 'Fluke 729 Automatic Pressure Calibrator',
+      'img-title' => 'Fluke 729 Automatic Pressure Calibrator',
+      'title' => t('Fluke 729 Automatic Pressure Calibrator'),
+      'link_url' => '/product/calibration-tools/pressure-calibrators/fluke-729',
+    ),
+    array(
+      'img_url' => $dam_base . 'F-1550c__ir3000fc_white_0.jpg',
+      'alt' => 'Fluke 1550C 5 kV Insulation Tester Kit',
+      'img-title' => 'Fluke 1550C 5 kV Insulation Tester Kit',
+      'title' => t('Fluke 1550C 5 kV Insulation Tester Kit'),
+      'link_url' => '/product/electrical-testing/insulation-testers/fluke-1550c-kit',
+    ),
+    array(
+      'img_url' => $dam_base . 'MDA-550-images-for-web-F-mda-550_01a-1500x1000.jpg',
+      'alt' => 'Fluke MDA-510 and MDA-550 Motor Drive Analyzers',
+      'img-title' => 'Fluke MDA-510 and MDA-550 Motor Drive Analyzers',
+      'title' => t('Fluke MDA-510 and MDA-550 Motor Drive Analyzers'),
+      'link_url' => '/product/electrical-testing/portable-oscilloscopes/fluke-mda-500-series',
+    ),
+    array(
+      'img_url' => $dam_base . 'F-ti450-pro-IR-Fusion_03b_h_1500x1000.jpg',
+      'alt' => 'Fluke Ti450 PRO Infrared Camera',
+      'img-title' => 'Fluke Ti450 PRO Infrared Camera',
+      'title' => t('Fluke Ti450 PRO Infrared Camera'),
+      'link_url' => '/product/thermal-imaging/infrared-cameras/professional-series/fluke-ti450-pro',
+    )
+  );
+  // Create images formatted in the <picture> tag for each product.
+  $featured_products_counter = 0;
+  foreach ($content['featured-products'] as $product) {
+    $formatted_picture = igcommerce_utility_format_image_blog_recent_stories(($product['img_url']), ($product['alt']), ($product['title']));
+    $content['featured-products'][$featured_products_counter]['formatted_picture'] = $formatted_picture;
+    $featured_products_counter++;
+  }
+
+  // Gray secondary navbar links. This is hidden on mobile.
+  $content['secondary-nav'] = array(
+    array(
+      'link_text' => 'Product Registration',
+      'link_url' => 'http://a.fluke.com/registration',
+    ),
+    array(
+      'link_text' => 'Where to buy',
+      'link_url' => '/where-to-buy',
+    ),
+    array(
+      'link_text' => 'Product manuals',
+      'link_url' => '/support/manuals',
+    ),
+    array(
+      'link_text' => 'Fluke accessories',
+      'link_url' => 'http://www.flukeonlinestore.com',
+    )
+  );
+
+  // Four banners with text below secondary nav.
+  $content['four-up-banners'] = array(
+    array(
+      'img_url' => $dam_base . 'fluke-assist-banner-1500x1000.jpg',
+      'alt' => 'Fluke connect phone app',
+      'img-title' => 'Fluke connect phone app',
+      'title' => t('COMING SOON'),
+      'subtitle' => t('Built for front line technicians and their teams'),
+      'link_url' => 'https://www.flukeassist.com/',
+    ),
+    array(
+      'img_url' => $dam_base . '3561-exp-2nd.jpg',
+      'alt' => 'Desktop alt tag',
+      'img-title' => 'Introducing the ultimate time saver',
+      'title' => t('Introducing the ultimate time saver'),
+      'subtitle' => t('3561 FC Vibration Sensors install quickly and monitor equipment remotely'),
+      'link_url' => '/product/condition-monitoring/vibration/3561-vibration-sensor',
+    ),
+    array(
+      // TODO: THis isn't the same image as on the mockup?
+      'img_url' => $dam_base . 'products-toc-ti-professional-series-1500x1000.jpg',
+      'alt' => 'Desktop alt tag',
+      'img-title' => 'Check out the NEW Fluke PRO Series Infrared Cameras',
+      'title' => t('Check out the NEW Fluke PRO Series Infrared Cameras'),
+      'subtitle' => t('Our bestselling Professional Series just got better'),
+      'link_url' => '/products/thermal-imaging/infrared-cameras/professional-series',
+    ),
+    array(
+      'img_url' => $dam_base . 'MDA-550-images-for-web-F-mda-550_07a-500x1000.jpg',
+      'alt' => 'Desktop alt tag',
+      'img-title' => 'Simplify the way you troubleshoot motor drives.',
+      'title' => t('Simplify the way you troubleshoot motor drives.'),
+      'subtitle' => t('New Fluke MDA-510 and MDA-550 Motor Drive Analyzers'),
+      'link_url' => 'http://a.fluke.com/IG-NA-SCM-2018-MDA500SERIES-USEN-LP-1-A?lcid=f644febe-3ec7-e811-80cc-00155d02a575&lrpf=SCM&plt=200000000&cra=100000001&scl=6222&redir=https://www.fluke.com/en-us/fluke/thank-you-for-contacting-fluke&elqTrackId=82f582fd785c4661bdb3382c474dc0d2&_ga=2.265678664.696403685.1540248626-637798031.1540248626',
+    )
+  );
+  // Creates images formatted in the <picture> tag for each banner.
+  $four_up_banner_counter = 0;
+  foreach ($content['four-up-banners'] as $banner) {
+      $formatted_picture = igcommerce_utility_format_image_blog_featured(($banner['img_url']), ($banner['alt']), ($banner['title']));
+      $content['four-up-banners'][$four_up_banner_counter]['formatted_picture'] = $formatted_picture;
+      $four_up_banner_counter++;
+  }
+
+  // Five "Featured Content" articles at the bottom of the page.
+  $content['featured-content'] = array(
+    array(
+      'img_url' => $dam_base . 'continental-carbonic-dry-ice-plant.jpg',
+      'alt' => 'Continental Carbonic Dry Ice Plant',
+      'img-title' => 'Continental Carbonic Dry Ice Plant',
+      'title' => t('How Fluke thermal imaging helps dry ice plant maintain uptime'),
+      'subtitle' => t('How Continental Carbonics Products used a Fluke thermal camera and thermal multimeter to implement a reliability program at their dry ice plants.'),
+      'link_url' => '/learn/blog/thermal-imaging/thermal-camera-dry-ice-plant-uptime',
+    ),
+    array(
+      'img_url' => $dam_base . 'SS-Fluke-Filmwerks-Green-Bay-2677-1500x1000.jpg',
+      'alt' => 'Desktop alt tag',
+      'img-title' => 'Remote power monitoring helps prevent football power failures',
+      'title' => t('Remote power monitoring helps prevent football power failures'),
+      'subtitle' => t('Filmwerks International turned to Fluke 3540 FC Three-Phase Power Monitors to monitor their backup UPS systems and generators'),
+      'link_url' => '/learn/blog/digital-multimeters/remote-power-monitoring-helps-prevent-football-power-failures',
+    ),
+    array(
+      'img_url' => $dam_base . 'kilauea-with-fluke-ir-camera_0.jpg',
+      'alt' => 'Desktop alt tag',
+      'img-title' => 'How scientists use thermal imaging to forecast changes in volcanic activity',
+      'title' => t('How scientists use thermal imaging to forecast changes in volcanic activity'),
+      'subtitle' => t('Capturing thermal energy at Kilauea'),
+      'link_url' => '/learn/blog/thermal-imaging/how-scientist-use-thermal-imaging-to-forecast-changes',
+    ),
+    array(
+      'img_url' => $dam_base . 'fluke-safety-2018-1500x1000.jpg',
+      'alt' => 'Desktop alt tag',
+      'img-title' => 'Top 10 Changes to 2018 NFPA 70E Safety Standards for Electricians',
+      'title' => t('Top 10 Changes to 2018 NFPA 70E Safety Standards for Electricians'),
+      'subtitle' => t('Most important highlights to know'),
+      'link_url' => '/learn/blog/electrical/top-10-changes-to-2018-nfpa-70e-safety-standards-for-electricians',
+    ),
+    array(
+      'img_url' => $dam_base . 'fnp-nist-malcom-mano-story-1500x1000_0.jpg',
+      'alt' => 'Desktop alt tag',
+      'img-title' => 'The volt makes a stop at the Fluke metrology lab',
+      'title' => t('The volt makes a stop at the Fluke metrology lab'),
+      'subtitle' => t('Ensuring a dc volt is the same wherever you go and on whatever device you own is the job of national and international standards organizations with an assist from private industry.'),
+      'link_url' => '/en-us/learn/blog/electrical/the-volt-makes-a-stop-at-the-fluke-metrology-lab',
+    ),
+  );
+  $featured_content_counter = 0;
+  foreach ($content['featured-content'] as $content_item) {
+    // The first image must be larger, so it gets a different <picture> generation function
+    if ($featured_content_counter == 0) {
+      $formatted_picture = igcommerce_utility_format_image_product_slideshow_main(($content_item['img_url']), ($content_item['alt']), ($content_item['title']));
+    } 
+    else {
+    $formatted_picture = igcommerce_utility_format_image_blog_featured(($content_item['img_url']), ($content_item['alt']), ($content_item['title']));
+    }
+    $content['featured-content'][$featured_content_counter]['formatted_picture'] = $formatted_picture;
+    $featured_content_counter++;
+  }
+
+  // Get the css to be downloaded
+  $static_css_for_maximiser = file_get_contents(drupal_get_path('module', 'igcommerce_homepage_ab_test') . '/css/ab-test.css');
+  // filename for css output
+  $css_file_name = "homepage-ab-test-" . date('m-d-Y-hia') . ".css";
+  // Theme the content and get the html back. It will be saved locally, and output as a page.
+  $static_html_for_maximiser = theme('homepage_ab_test', array('content' => $content));
+  // filename for html output
+  $html_file_name = "homepage-ab-test-" . date('m-d-Y-hia') . ".html";
+  
+  // path where the .html files are saved
+  $output_dir = 'public://maxymiser-ab-test/';
+  // If the folder doesn't exsist, create it.
+  file_prepare_directory($output_dir, FILE_CREATE_DIRECTORY);
+  // save the html file to the specified directory.
+  $file = file_save_data($static_html_for_maximiser, $output_dir . $html_file_name);
+  // save the css file to the specified directory.
+  $css_file = file_save_data($static_css_for_maximiser, $output_dir . $css_file_name);
+
+  // If both files saved correctly, generate a message with the download links.
+  if ($file != 0 && $css_file != 0) {
+    $html_link = file_create_url($file->uri);
+    $css_link = file_create_url($css_file->uri);
+    drupal_set_message(t('Files for Maxymiser have been created! <br>Download the html file here: <a href="@link" download>' . $html_file_name . '</a><br>Download the css file here: <a href="@css_link" download>' . $css_file_name . '</a>.', array('@link' => $link, '@css_link' => $css_link)));
+  } 
+
+  // Return html to be output at /ab-test
+  return $static_html_for_maximiser;
+}

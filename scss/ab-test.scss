@@ -1,0 +1,341 @@
+/*
+* ACTUALLY READ THIS!
+*
+* This file contains styles for the igcommerce_homepage_ab_test.module
+* Lines X-67 are variables required for the scss to compile.
+* 
+* Rather than build a seperate bourbon/neat instance, I dropped this file into
+* sites/all/themes/ig_neato/scss/ab-test.scss
+* When you put this file there and run 'gulp' it will compile and output your 
+* css into sites/all/themes/ig_neato/css/ab-test.css
+* Take that .css, cull everything above the /* Cull above here in final css *
+* comment, and move that css back to the module. It's a roundabout solution,
+* but it prevents css duplication.
+*
+*/
+
+// All of the normalize stuff is imported with the default theme files
+
+// Make sure the charset is set appropriately
+
+@charset "UTF-8";
+
+// Import Bourbon.
+@import "../../neato/bower_components/bourbon/app/assets/stylesheets/bourbon";
+
+// Import Neat.
+@import "../../neato/bower_components/neat/app/assets/stylesheets/neat";
+@import "../../neato/bower_components/neat/app/assets/stylesheets/neat-helpers";
+@import "variables/colors.scss";
+@import "variables/grid-settings.scss";
+@import "variables/typography.scss";
+@import "variables/all-other-variables.scss";
+@import "variables/brand-settings-default.scss";
+
+/*
+ * BRAND VARIABLES
+ */
+@import "variables/brand-settings-default.scss";
+@import "variables/brand-settings-fluke.scss";
+
+// Import mixins
+@import "helpers-mixins/**/*.scss";
+
+// Import Bitters.
+@import "base/base";
+
+
+/* Cull above here in final css ^^^ */
+
+/*
+ * Everything below will generate the css for the AB-test. Everything that the 
+ * above scss generates can be ignored
+ */
+#ab-test-outer-wrapper {
+  background-color: $gray-e;
+  #ab-test-inner-wrapper {
+    @include outer-container;
+    background-color: white;
+    h2 {
+      font-size: 20px; // Only affects section headings, i.e. "Featured Products" & "Featured content"
+      margin-top: 15px;
+    }
+    // Titles for the "Featured Products" and "Featured Articles" sections
+    .sub-section-title {
+      padding-left: 15px;
+      @include media($screen-xs) {
+        padding: 0;
+      }
+    }
+    //This forces a dynamic line break, only used in the main homepage 1:1 banner.
+    // Origionally found at: https://css-tricks.com/injecting-line-break/
+    .line-break:before {
+      @include media($screen-md) {
+        content: "\A";
+        white-space: pre;
+      }
+    }
+    .banner-text {
+      padding: 15px;
+      color: $text-color;
+      line-height: 1.2;
+      h1, h2, h3 {
+        font-size: 20px;
+        font-weight: 700;
+      }
+    }
+    p,
+    a {
+      font-family: $headings-font-family;
+      &:hover {
+        text-decoration: none;
+      }
+    }
+    @include media($screen-xs) {
+      padding: 0 30px 100px;
+    }
+    .hero-banner {
+      position: relative; // Required for the text overlay
+      line-height: .8; // Kills extra padding underneath image on mobile
+      margin-bottom: 30px;
+      @include span-columns(12);
+      @include media($screen-md) {
+        @include span-columns(6);
+      }
+      .banner-text {
+        position: absolute;
+        bottom: 8px;
+        left: 16px;
+        color: white;
+      }
+    }
+
+    .secondary-banners {
+      @include span-columns(12); 
+      @include media($screen-md) {
+        @include span-columns(6);
+      }
+      line-height: .8;
+      .hero-sub-banner {
+        margin-bottom: 0;
+        padding-bottom: 6.5rem;
+        background-color: $gray-e;
+        @include span-columns(12);
+        h2 {
+          margin: 0 0 10px;
+        }
+        @include media($screen-xs) {
+          margin-bottom: 30px;
+          padding-bottom: 0;
+          picture {
+            @include span-columns(5);
+            margin-right: 0;
+          }
+          .banner-text {
+            @include span-columns(7);
+          }
+        }
+        @include media($screen-md) {
+          margin-bottom: 5.1%; // Ensures the two banners scale evenly with the hero banner
+          picture {
+            @include span-columns(6 of 9);
+            margin-right: 0;
+          }
+          .banner-text {
+            @include span-columns(3 of 9);
+          }
+        }
+      }
+    }
+
+    .featured-product {
+      @include span-columns(6 of 12);
+      @include omega(even);
+      padding: 15px;
+      &:last-child {
+        display: none;
+      }
+      h3 {
+        font-size: 1.6rem;
+      }
+      @include media($screen-sm) {
+        padding: 0;
+        @include omega-reset(even);   // reset the grid from above
+        @include span-columns(2 of 10);
+        &:last-child {
+          display: block;
+        }
+      }
+    }
+    
+    .secondary-nav {
+      display: none;
+      // Hidden on mobile, only displays on tablet upwards.
+      @include media($screen-sm) {
+        display: block;
+        margin: 3rem 0 6.5rem;
+        a {
+          background-color: $gray-d;
+          padding: 1.5rem;
+          color: $text-color;
+          &:hover {
+            color: $blue-medium;
+          }
+          @include media($screen-sm) {
+            @include span-columns(6);
+            @include omega(even);
+            margin-bottom: 20px;
+            text-align: center;
+          }
+          @include media($screen-md) {
+            @include span-columns(3);
+            @include omega-reset(even);
+            margin-bottom: 0;
+            text-align: left;
+            &:last-child {
+              margin-right: 0;
+            }
+          }
+        }
+      }
+      @include media($screen-md) {
+        background-color: $gray-d;
+      }
+    } // End .secondary-nav.
+
+    .four-up-banners {
+      line-height: .8;
+      padding-bottom: 6.5rem;
+      border-bottom: 1px solid $gray-d;
+      .mini-banner {
+        background-color: $gray-e;
+        padding-bottom: 30px;
+        @include span-columns(12);
+        // Mobile landscape, text goes next to image 50/50 split
+        @include media($screen-xs) {
+          margin-bottom: 50px;
+          padding-bottom: 0;
+          picture {
+            @include span-columns(5);
+          }
+          .banner-text {
+            @include span-columns(7);
+          }
+        } 
+        // Tablet, text goes next to image 33/66 split
+        @include media($screen-sm) {
+          picture {
+            @include span-columns(4);
+          }
+          .banner-text {
+            @include span-columns(8);
+          }
+        } 
+        @include media($screen-md) {
+          @include span-columns(6);
+          @include omega(even);
+          picture {
+            @include span-columns(6);
+            margin-right: 0;
+          }
+          .banner-text {
+            @include span-columns(6);
+          }
+        }    
+        // Desktop text goes below image, cards are two per row.
+        @include media($screen-lg) {
+          picture {
+            @include span-columns(6 of 9);
+            margin-right: 0;
+          }
+          .banner-text {
+            @include span-columns(3 of 9);
+          }
+        }     
+      }
+    } // End 4-up Banners
+
+    // The responsive layout here is nutso.  
+    .featured-content {
+      a {
+        color: $text-color;
+      }
+      // Only afects the title section
+      .sub-section-title {
+        @include span-columns(12);
+        h2,
+        .featured-content-view-more {
+          display: inline-block;
+          color: $text-color;
+        }
+        .featured-content-view-more {
+         font-size: 14px;
+         color: $blue-medium;
+          @include media($screen-xs) {
+            margin-left: 3rem;
+          }
+        }
+      }
+      .read-time {
+        font-size: 14px;
+      }
+      .featured-content-items {
+        display: block;
+        .banner-text {
+          @include media($screen-xs) {
+            padding: 0;
+          }
+        }
+        // Governs width for all 5 articles on mobile.
+        .featured-content-item {
+          @include span-columns(12);
+          margin-bottom: 30px;
+          @include media($screen-xs) {
+            @include span-columns(6);
+            @include omega(odd);
+            // Keeps the last of 5 articles floated left on mobile.
+            &:last-child {
+              clear: both;
+            }
+          }
+        }
+        // Parent containers for 1 large article and 4 small articles on tablet upwards.
+        .hero-featured,
+        .featured-content-smalls {
+          @include media($screen-sm) {
+            @include span-columns(6);
+          }
+        }
+        // Single large article on tablet and up.
+        .hero-featured {
+          .featured-content-item {
+            @include media($screen-sm) {
+              @include span-columns(12);
+            }
+            // Since the first article is in it's own wrapper div, we have to override default column styling here
+            &:last-child {
+              margin-right: 2.43902%;
+            }
+          }
+        }
+        // 4 small articls on tablet and up.
+        .featured-content-smalls {
+          @include media($screen-sm) {
+            @include omega(odd);
+          }
+          .featured-content-item {
+            @include media($screen-sm) {
+              @include span-columns(6);
+              @include omega-reset(odd);
+              @include omega(even);
+              margin-bottom: 30px;
+              &:last-child {
+                clear: inherit;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

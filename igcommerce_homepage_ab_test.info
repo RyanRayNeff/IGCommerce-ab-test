@@ -1,0 +1,6 @@
+name = IG Commerce Homepage AB Test
+description = Genereates the html for an alternate homepage. This module should not be live. The html generated will be given to Maxymiser to dynamically insert into the homepage.
+core = 7.x
+package = IG Commerce
+
+dependencies[] = fluke_solr
