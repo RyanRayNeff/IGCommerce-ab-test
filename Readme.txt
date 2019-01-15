@@ -1,0 +1,1 @@
+This branch is still exsists as MIG4498. Once functional requirements have been defined, please start work from that branch. The requirements will likely specify one locale at a time launch, so you'll probably have to roll back a few commits to keep the homepage slideshow block styleing.
